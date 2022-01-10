@@ -45,6 +45,8 @@ public class Bisection {
             System.out.println("No Brackets");
             throw new Exception();
         }
+        if(fl == 0) return a;
+        if(fu == 0) return b;
         double ea = 100;
         double xr = 100, xr_old, fr;
         while ( ea > Ea && i<maxIter){

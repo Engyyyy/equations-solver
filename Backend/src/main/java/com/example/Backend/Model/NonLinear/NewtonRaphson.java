@@ -64,7 +64,7 @@ public class NewtonRaphson {
                     extracoeff=term.substring(0,i-1);
                     coefficient=coefficient.substring(i);
                 }}
-                i+=3;
+                i+=2;
                 continue;
             }
             else if(term.charAt(i)=='^'){
@@ -84,7 +84,6 @@ public class NewtonRaphson {
         {
             powerCoef += term.charAt(i);
         }
-        powerCoef = powerCoef.replace(")","");
         String derivExp = "";
         double xcoefficient = 1;
         if(coefficient.length()==1 && coefficient.contains("-")){xcoefficient = -1;}
@@ -98,10 +97,10 @@ public class NewtonRaphson {
         double resultDeriv=0,resultFunc=0;
         String[] result = new String[3];
         if(flagsin){
-            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"sin"+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower);
+            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"cos("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
         }
         else if(flagcos){
-            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"cos"+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower);
+            derivExp += String.valueOf(-1*xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"sin("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
         }
         else if(falge){
             derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"exp("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
@@ -110,7 +109,7 @@ public class NewtonRaphson {
             derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+String.valueOf(expon)+"("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
         }
         else {
-            derivExp += String.valueOf(xcoefficient*xpower)+"x"+"^"+String.valueOf(xpower);
+            derivExp += String.valueOf(xcoefficient*xpower)+"x"+"^"+String.valueOf(xpower-1);
         }
         if(flagsin || flagcos){
             double angel = Math.toRadians(xcoefficient*Math.pow(value,xpower));
@@ -163,6 +162,8 @@ public class NewtonRaphson {
         String[] finalResult = new String[3];
         String[] result ;
         while (i<terms.length) {
+            terms[i]=terms[i].replace("(","");
+            terms[i]=terms[i].replace(")","");
             result = CalDerivativeTerm(terms[i], value, prec);
             funct = SignificantFig(funct, prec) + Double.parseDouble(result[1]);
             deriv = SignificantFig(deriv, prec) + Double.parseDouble(result[2]);
@@ -197,16 +198,18 @@ public class NewtonRaphson {
             x = SignificantFig(x - h,signFig);
             iterations++;
         }
+        System.out.println("ea = " + h);
+        System.out.println("iter = " + iterations);
         long endTime = System.nanoTime();
         funTime = endTime - startTime;
         totalTime = totalTime + funTime;
         return SignificantFig(x,signFig);
     }
     public static void main (String[] args) {
-        String str = "exp(-x^1)+-x^1";
-        double val = 0;
+        String str = "4*cos(x^2)+2";
+        double val = 2;
         NewtonRaphson res = new NewtonRaphson();
-        double finalResult = res.NewtonRaphsonImp(str, val,10,.0000001,9);
+        double finalResult = res.NewtonRaphsonImp(str, val,3,.0000001,9);
         String[] resu = res.CalDerivativeExp(str,2,6);
         System.out.println(finalResult);
         for (int i=0;i<3;i++){

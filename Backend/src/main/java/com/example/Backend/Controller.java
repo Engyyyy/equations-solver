@@ -120,6 +120,13 @@ public class Controller {
     public ArrayList<Double> getbisectionvalues() {
         return Bisection.values;
     }
+    @GetMapping("/falseposition")
+    public double findByFalsePosition(@RequestParam String fx, @RequestParam double x0, @RequestParam double x1, @RequestParam double es, @RequestParam int maxIter, @RequestParam int sf) throws Exception {
+        fx = fx.replace(" ", "+");
+        double res = FalsePosition.falseP(fx, sf, maxIter, x0, x1, es);
+        runtime = FalsePosition.totalTime;
+        return res;
+    }
     @GetMapping("/fixedpoint")
     public double findByFixedPoint(@RequestParam  String fx, @RequestParam double x0, @RequestParam double es, @RequestParam int maxIter, @RequestParam int sf) {
         fx = fx.replace(" ", "+");
@@ -136,5 +143,18 @@ public class Controller {
         double res = newtonRaphson.NewtonRaphsonImp(fx, x0, maxIter, es, sf);
         runtime = NewtonRaphson.totalTime;
         return  res;
+    }
+    @GetMapping("/secant")
+    public double findBySecant(@RequestParam String fx, @RequestParam double x0, @RequestParam double x1, @RequestParam double es, @RequestParam int maxIter, @RequestParam int sf) {
+        fx = fx.replace(" ", "+");
+        double res = Secant.secantRes(fx, x1, x0, sf, maxIter, es);
+        runtime = Secant.totalTime;
+        return res;
+    }
+
+    @GetMapping("/getderivative")
+    public String getDerivative(String fx) {
+        fx = fx.replace(" ", "+");
+        return Secant.CalDerivativeExp(fx);
     }
 }

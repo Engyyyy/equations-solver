@@ -14,11 +14,15 @@ public class Secant {
     public static boolean flagcos = false;
     public static boolean flagexp = false;
     public static boolean falge = false;
-    static long totalTime = 0;
+    public static boolean flagsinex = false;
+    public static boolean flagcosex = false;
+    public static boolean flagexpex = false;
+    public static boolean falgeex = false;
+    public static long totalTime = 0;
     static long funTime = 0;
 
     //function for precision
-    static double precision(double value, int prec) {
+    static double SignificantFig(double value, int prec) {
         long startTime = System.nanoTime();
         if(prec != -1) {
             double rounded;
@@ -37,48 +41,8 @@ public class Secant {
             return value;
         }
     }//end of function
-
-    public static double F(String exp, double n, int prec) {
+    public static String CalDerivativeTerm(String term){
         long startTime = System.nanoTime();
-        Expression e = new ExpressionBuilder(exp)
-                .variables("x")
-                .build()
-                .setVariable("x", n);
-        double result = e.evaluate();
-        result = precision(result, prec);
-        long endTime = System.nanoTime();
-        funTime = endTime - startTime;
-        totalTime = totalTime + funTime;
-        return result;
-    }
-    public static void secantRes( double fOfX0, double fOfX_1, double x0, double x_1, int prec) {
-        long startTime = System.nanoTime();
-        boolean flag= true;
-        int i = 0;
-        double root,given=5,error;
-        while(flag){
-            root = x0 - ((fOfX0*(x0-x_1))/(fOfX0-fOfX_1));
-            root = precision(root, prec);
-            error = Math.abs((root-x0)/root)*100;
-            error = precision(error, prec);
-
-            System.out.println("Iteration : "+ i++);
-            System.out.println("Root:"+root);
-            System.out.println("Error:"+error);
-
-            x_1 = x0;
-            x0 = root;
-
-            if(given>error)
-            {
-                flag=false;
-            }
-        }
-        long endTime = System.nanoTime();
-        funTime = endTime - startTime;
-        totalTime = totalTime + funTime;
-    }
-    public static String[] CalDerivativeTerm(String term ,double value ,int prec){
         String coefficient = "";
         String powerCoef = "";
         String exp = "";
@@ -112,7 +76,7 @@ public class Secant {
                     extracoeff=term.substring(0,i-1);
                     coefficient=coefficient.substring(i);
                 }}
-                i+=3;
+                i+=2;
                 continue;
             }
             else if(term.charAt(i)=='^'){
@@ -132,7 +96,6 @@ public class Secant {
         {
             powerCoef += term.charAt(i);
         }
-        powerCoef = powerCoef.replace(")","");
         String derivExp = "";
         double xcoefficient = 1;
         if(coefficient.length()==1 && coefficient.contains("-")){xcoefficient = -1;}
@@ -144,84 +107,102 @@ public class Secant {
         double excoe = 1;
         if(extracoeff!=""){excoe = Double.parseDouble(extracoeff);}
         double resultDeriv=0,resultFunc=0;
-        String[] result = new String[3];
+        String result = "";
         if(flagsin){
-            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"sin"+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower);
+            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"cos("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
+            flagsin = false;
         }
         else if(flagcos){
-            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"cos"+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower);
+            derivExp += String.valueOf(-1*xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"sin("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
+            flagcos=false;
         }
         else if(falge){
             derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+"exp("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
-        }
-        else if(flagexp){
-            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+String.valueOf(expon)+"("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
-        }
-        else {
-            derivExp += String.valueOf(xcoefficient*xpower)+"x"+"^"+String.valueOf(xpower);
-        }
-        if(flagsin || flagcos){
-            double angel = Math.toRadians(xcoefficient*Math.pow(value,xpower));
-            double sinval = precision(Math.sin(angel),prec);
-            double cosval = precision(Math.cos(angel),prec);
-            if (flagsin){
-                resultDeriv = excoe * xcoefficient * xpower * precision(Math.pow(value,xpower-1),prec) * cosval;
-                resultFunc = sinval * excoe;
-                flagsin=false;
-            }
-            else if (flagcos){
-                resultDeriv = excoe * -xcoefficient * xpower * precision(Math.pow(value,xpower-1),prec) * sinval;
-                resultFunc = cosval * excoe;
-                flagcos=false;
-            }
-        }
-        else if(falge){
-            double eval = precision(Math.exp(xcoefficient*Math.pow(value,xpower)),prec) * excoe ;
-            resultDeriv = xcoefficient * precision(Math.pow(value,xpower-1),prec) * xpower * eval;
-            resultFunc = eval;
             falge=false;
         }
         else if(flagexp){
-            double expval = precision(Math.pow(expon,xcoefficient*Math.pow(value,xpower)),prec) * excoe;
-            resultDeriv = Math.log(expon) * expval * xcoefficient * xpower * precision(Math.pow(value,xpower-1),prec);
-            resultFunc = expval;
+            derivExp += String.valueOf(xcoefficient*xpower*excoe)+"x"+"^"+String.valueOf(xpower-1)+String.valueOf(expon)+"("+String.valueOf(xcoefficient)+"x"+"^"+String.valueOf(xpower)+")";
             flagexp=false;
         }
-        else{
-            resultDeriv = xcoefficient * xpower * precision(Math.pow(value,xpower-1),prec);
-            resultFunc = xcoefficient * precision(Math.pow(value,xpower),prec);
+        else {
+            derivExp += String.valueOf(xcoefficient*xpower)+"x"+"^"+String.valueOf(xpower-1);
         }
-        result[0]=derivExp;
-        double x=precision(resultFunc,prec);
-        result[1]=String.valueOf(x);
-        double y=precision(resultDeriv,prec);
-        result[2]=String.valueOf(y);
+        result = derivExp;
+        long endTime = System.nanoTime();
+        funTime = endTime - startTime;
+        totalTime = totalTime + funTime;
         return result;
     }
-    public static String[] CalDerivativeExp(String exp ,double value ,int prec){
+    public static String CalDerivativeExp(String exp){
+        long startTime = System.nanoTime();
         String[] terms = exp.split("\\+") ;
         int i  = 0;
         String totalDeriv = "";
         double funct=0;
         double deriv=0;
         String[] finalResult = new String[3];
-        String[] result ;
+        String result = "";
         while (i<terms.length) {
-            result = CalDerivativeTerm(terms[i], value, prec);
-            funct = precision(funct, prec) + Double.parseDouble(result[1]);
-            deriv = precision(deriv, prec) + Double.parseDouble(result[2]);
+            terms[i]=terms[i].replace("(","");
+            terms[i]=terms[i].replace(")","");
+            result = CalDerivativeTerm(terms[i]);
             if (i == 0) {
-                totalDeriv = totalDeriv + result[0];
+                totalDeriv = totalDeriv + result;
             } else {
-                totalDeriv = totalDeriv + "+" + result[0];
+                totalDeriv = totalDeriv + "+" + result;
             }
             i++;
         }
-        finalResult[0] = totalDeriv;
-        finalResult[1] = String.valueOf(precision(funct, prec));
-        finalResult[2] = String.valueOf(precision(deriv, prec));
-        return finalResult;
+        long endTime = System.nanoTime();
+        funTime = endTime - startTime;
+        totalTime = totalTime + funTime;
+        return totalDeriv;
     }
+
+    public static double F(String exp, double n, int prec) {
+        long startTime = System.nanoTime();
+        Expression e = new ExpressionBuilder(exp)
+                .variables("x")
+                .build()
+                .setVariable("x", n);
+        double result = e.evaluate();
+        result = SignificantFig(result, prec);
+        long endTime = System.nanoTime();
+        funTime = endTime - startTime;
+        totalTime = totalTime + funTime;
+        return result;
+    }
+    public static double secantRes(String exp, double x0, double x_1, int prec, int maxIter, double Ea) {
+        long startTime = System.nanoTime();
+
+        double fOfX0=F(exp,x0, prec);
+        double fOfX_1=F(exp,x_1, prec);
+        int i = 0;
+        double error=100;
+        double root = x0;
+        while(error>Ea && i<maxIter) {
+            root = x0 - ((fOfX0*(x0-x_1))/(fOfX0-fOfX_1));
+            root = SignificantFig(root, prec);
+            error = Math.abs((root-x0)/root)*100;
+            error = SignificantFig(error, prec);
+
+            System.out.println("Iteration : "+ i);
+            System.out.println("Root:"+root);
+            System.out.println("Error:"+error);
+
+            x_1 = x0;
+            x0 = root;
+            fOfX0=F(exp,x0, prec);
+            fOfX_1=F(exp,x_1, prec);
+
+            i++;
+        }
+        long endTime = System.nanoTime();
+        funTime = endTime - startTime;
+        totalTime = totalTime + funTime;
+        return root;
+    }
+
     public static void main(String[] args) {
         String exp;
 
@@ -232,21 +213,20 @@ public class Secant {
         System.out.print("Enter the equation: ");
         exp= sc.next();
 
-//        System.out.print("Enter value for x_1 : ");
-//        x_1 = sc.nextDouble();
-//
-//        System.out.print("Enter value for x0 : ");
-//        x0 = sc.nextDouble();
-//
-//        System.out.print("Enter value for precision : ");
-//        int prec = sc.nextInt();
+        System.out.print("Enter value for x_1 : ");
+        x_1 = sc.nextDouble();
 
-//        fOfX0=F(exp,x0, prec);
-//        fOfX_1=F(exp,x_1, prec);
+        System.out.print("Enter value for x0 : ");
+        x0 = sc.nextDouble();
 
-        //secantRes(fOfX0,fOfX_1,x0,x_1, prec);
-
-        String[] res = CalDerivativeExp(exp, 0, 5);
-        System.out.println(res[0]);
+        System.out.print("Enter value for precision : ");
+        String deriv = CalDerivativeExp("-1*cos(x^2)+x^3");
+        int prec = sc.nextInt();
+        System.out.print("Enter value for iterations : ");
+        int maxIter = sc.nextInt();
+        System.out.print("Enter value for error : ");
+        double Ea = sc.nextDouble();
+        System.out.println(deriv);
+        System.out.println(secantRes(exp,x0,x_1, prec, maxIter, Ea));
     }
 }
